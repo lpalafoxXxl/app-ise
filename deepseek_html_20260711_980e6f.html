@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>ISE — Sistema de Administración Escolar</title>
+<style>
+  :root{
+    --ink:#302d2f;--paper:#fff8fb;--card:#ffffff;--rose:#ec198e;--rose-dark:#bd0b6d;
+    --rose-light:#fde5f2;--gold:#f0a7cc;--gold-light:#fff0f7;--sage:#6f5870;
+    --sage-light:#f2eaf3;--clay:#746a70;--line:#eee3e9;--danger:#c83358;--danger-light:#fde7ed;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI Variable","Aptos","Inter",system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#fff8fb 0%,#fff 55%,#fff2f8 100%);color:var(--ink);}
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:252px;background:linear-gradient(180deg,#292629 0%,#383238 100%);flex-shrink:0;padding:24px 0;display:flex;flex-direction:column;box-shadow:12px 0 35px rgba(48,45,47,.08);}
+  .brand{padding:0 22px 22px;border-bottom:1px solid rgba(255,255,255,0.12);margin-bottom:16px;}
+  .brand-mark{display:flex;align-items:center;gap:13px;}
+  .brand-logo{width:52px;height:64px;object-fit:contain;object-position:center;background:#fff;border-radius:12px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.22);}
+  .brand-name{font-family:inherit;font-size:23px;font-weight:800;letter-spacing:1.8px;color:#fff;}
+  .brand-sub{font-size:10px;line-height:1.35;color:rgba(255,255,255,.64);text-transform:uppercase;letter-spacing:.8px;}
+  .nav{display:flex;flex-direction:column;gap:5px;padding:0 10px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:10px;cursor:pointer;font-size:14px;color:rgba(251,247,245,.78);font-weight:550;transition:.18s ease;}
+  .nav-item:hover{background:rgba(236,25,142,.13);transform:translateX(2px);}
+  .nav-item.active{background:linear-gradient(90deg,rgba(236,25,142,.32),rgba(236,25,142,.08));color:#fff;box-shadow:inset 3px 0 #ec198e;font-weight:600;}
+  .nav-dot{width:7px;height:7px;border-radius:50%;background:#ec198e;box-shadow:0 0 0 4px rgba(236,25,142,.12);}
+  .main{flex:1;padding:38px 46px;max-width:1280px;width:100%;}
+  h1.page-title{font-family:inherit;font-size:30px;font-weight:780;letter-spacing:-.5px;margin:0 0 4px 0;color:var(--ink);}
+  .page-sub{color:var(--clay);font-size:14px;margin:0 0 30px 0;}
+  .grid{display:grid;gap:16px;}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  .grid-2{grid-template-columns:1fr 1fr;}
+  .metric{background:var(--card);border:1px solid rgba(48,45,47,.08);border-radius:16px;padding:18px 20px;position:relative;overflow:hidden;box-shadow:0 12px 35px rgba(48,45,47,.055);}
+  .metric:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#ec198e;}
+  .metric-label{font-size:12px;color:var(--clay);text-transform:uppercase;letter-spacing:.75px;margin-bottom:8px;font-weight:700;}
+  .metric-value{font-size:30px;font-weight:700;color:var(--ink);letter-spacing:-1px;}
+  .metric-value.rose{color:var(--rose-dark);}
+  .metric-value.sage{color:var(--sage);}
+  .card{background:var(--card);border:1px solid rgba(48,45,47,.08);border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 12px 35px rgba(48,45,47,.055);}
+  .card h3{margin:0 0 14px 0;font-size:15px;font-weight:700;}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px;flex-wrap:wrap;}
+  .search-box{padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;min-width:220px;background:var(--card);border-color:#e8dce3;}
+  select.filter{padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);border-color:#e8dce3;}
+  .btn{padding:9px 16px;border-radius:10px;border:1px solid var(--rose);background:linear-gradient(135deg,#ec198e,#d00d77);color:#fff;font-size:14px;cursor:pointer;font-weight:600;box-shadow:0 7px 18px rgba(236,25,142,.18);transition:.18s ease;}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(236,25,142,.25);}
+  .btn.secondary{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+  .btn.secondary:hover{background:var(--paper);}
+  .btn.danger{background:var(--danger);border-color:var(--danger);}
+  .btn.small{padding:5px 10px;font-size:12px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;padding:10px 12px;color:var(--clay);font-size:12px;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid var(--line);}
+  td{padding:11px 12px;border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  tr.clickable{cursor:pointer;}
+  tr.clickable:hover{background:var(--paper);}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .badge.activo{background:var(--sage-light);color:var(--sage);}
+  .badge.baja{background:var(--danger-light);color:var(--danger);}
+  .badge.carrera{background:#f3e9ff;color:#6d3aa0;}
+  .badge.diplomado{background:var(--rose-light);color:var(--rose-dark);}
+  .badge.seminario{background:#e7f5ff;color:#256b96;}
+  .badge.verano{background:#fff0d8;color:#9b5f07;}
+  .badge.evento{background:#ece9ea;color:#4c4549;}
+  .empty{padding:40px 20px;text-align:center;color:var(--clay);}
+  .empty i{display:block;font-size:13px;}
+  .overlay{position:fixed;inset:0;background:rgba(46,36,56,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .modal{background:var(--card);border-radius:20px;padding:26px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;box-shadow:0 30px 80px rgba(34,28,32,.28);}
+  .modal h2{font-family:Georgia,serif;font-size:19px;margin:0 0 18px 0;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--clay);margin-bottom:5px;font-weight:600;}
+  .field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;background:var(--paper);border-color:#e8dce3;}
+  .field textarea{resize:vertical;min-height:60px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  .tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+  .tab{padding:10px 16px;font-size:14px;cursor:pointer;color:var(--clay);border-bottom:2px solid transparent;}
+  .tab.active{color:var(--rose-dark);border-bottom-color:var(--rose);font-weight:600;}
+  .ficha-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+  .ficha-name{font-family:inherit;font-size:22px;font-weight:780;letter-spacing:-.5px;margin:0;}
+  .ficha-meta{color:var(--clay);font-size:13px;margin-top:4px;}
+  .back-link{color:var(--rose-dark);font-size:13px;cursor:pointer;margin-bottom:14px;display:inline-block;}
+  .row-actions{display:flex;gap:8px;}
+  .att-grid{display:flex;flex-direction:column;gap:8px;}
+  .att-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:6px;}
+  .att-row span{font-size:14px;}
+  .toggle{display:flex;gap:6px;}
+  .toggle button{padding:5px 12px;border-radius:6px;border:1px solid var(--line);background:var(--card);font-size:12px;cursor:pointer;}
+  .toggle button.on-p{background:var(--sage-light);border-color:var(--sage);color:var(--sage);}
+  .toggle button.on-a{background:var(--danger-light);border-color:var(--danger);color:var(--danger);}
+  .note{font-size:12px;color:var(--clay);margin-top:6px;}
+  .loading{padding:60px;text-align:center;color:var(--clay);}
+  .nav-divider{height:1px;background:rgba(255,255,255,.12);margin:14px 12px 10px;}
+  .nav-action{margin:2px 12px;padding:8px 10px;border:1px solid rgba(255,255,255,.18);border-radius:6px;background:transparent;color:rgba(251,247,245,.8);font:inherit;font-size:12px;text-align:left;cursor:pointer;}
+  .nav-action:hover{background:rgba(255,255,255,.08);color:var(--gold-light);}
+  .calendar-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+  .calendar-filter{padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--clay);cursor:pointer;font-weight:650;}
+  .calendar-filter.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .calendar-list{display:grid;gap:12px;}
+  .calendar-event{display:grid;grid-template-columns:150px 1fr auto;gap:18px;align-items:center;padding:16px 18px;border:1px solid var(--line);border-left:5px solid var(--event-color,#ec198e);border-radius:14px;background:#fff;}
+  .calendar-date{font-weight:750;color:var(--ink);}.calendar-title{font-weight:760;font-size:15px}.calendar-meta{font-size:12px;color:var(--clay);margin-top:4px;}
+  .date-range{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px;background:#fff6fb;border:1px solid #f7d6e8;border-radius:12px;}
+  .date-range-note{grid-column:1/-1;margin:0;color:#8a6478;font-size:12px;}
+  .plan-summary{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}.plan-summary span{padding:7px 11px;background:var(--rose-light);color:var(--rose-dark);border-radius:999px;font-size:12px;font-weight:700;}.calendar-count{font-size:12px;color:var(--clay);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;}
+  @media (max-width:780px){
+    .app{display:block;}
+    .sidebar{width:100%;padding:14px 0;}
+    .brand{padding:0 16px 12px;margin-bottom:10px;}
+    .brand-mark{justify-content:center;}
+    .brand-sub{text-align:center;}
+    .nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+    .nav-divider{display:none;}
+    .nav-action{margin:2px;}
+    .main{padding:22px 16px;max-width:none;overflow-x:hidden;}
+    .grid-4,.grid-2{grid-template-columns:1fr 1fr;}
+    .card{overflow-x:auto;}
+    table{min-width:620px;}
+    .calendar-event{grid-template-columns:1fr;gap:8px;}
+    .date-range{grid-template-columns:1fr;}
+    .brand-logo{width:44px;height:52px;}
+  }
+  @media (max-width:480px){
+    .grid-4,.grid-2{grid-template-columns:1fr;}
+    .toolbar{align-items:stretch;}
+    .search-box,select.filter,.toolbar .btn{width:100%;min-width:0;}
+  }
+</style>
+</head>
+<body>
+<div id="root" class="loading">Cargando ISE...</div>
+<script>
+const STORAGE_KEY = 'ise-database';
+const PLAN_DATA = {
+  "version": "2026-07-11",
+  "planes": [
+    {
+      "id": "intensivos-2025-2026",
+      "nombre": "Intensivos viernes y sabado 2025-2026",
+      "sede": "Ciudad Guzman",
+      "ciclo": "2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "id": "lunes-jueves-11-3-2025-2026",
+      "nombre": "Lunes a jueves 11:00 y 3:00 2025-2026",
+      "sede": "Ciudad Guzman",
+      "ciclo": "2025-2026",
+      "grupos": [
+        "Lunes a jueves 11:00 a 1:00",
+        "Lunes a jueves 3:00 a 5:00"
+      ]
+    },
+    {
+      "id": "lunes-jueves-8-6-2026-2027",
+      "nombre": "Lunes a jueves 8:00 y 6:00 2026-2027",
+      "sede": "Ciudad Guzman",
+      "ciclo": "2026-2027",
+      "grupos": [
+        "Lunes a jueves 8:00 a 10:00",
+        "Lunes a jueves 6:00 a 8:00"
+      ]
+    },
+    {
+      "id": "viernes-2-6-2026-2028",
+      "nombre": "Viernes 2:00 a 6:00 2026-2028",
+      "sede": "Ciudad Guzman",
+      "ciclo": "2026-2028",
+      "grupos": [
+        "Viernes 2:00 a 6:00"
+      ]
+    }
+  ],
+  "eventos": [
+    {
+      "titulo": "Maquillaje Y Caracterizacion",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-01-23",
+      "fechaFin": "2025-02-07",
+      "semanas": 3,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Etica Profesional",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-01-24",
+      "fechaFin": "2025-01-25",
+      "semanas": 1,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Permacologia",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-01-31",
+      "fechaFin": "2025-03-01",
+      "semanas": 5,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Tesis",
+      "modalidad": "Evento especial",
+      "tipo": "tesis",
+      "fechaInicio": "2025-02-13",
+      "fechaFin": "2025-02-14",
+      "semanas": 1,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Maquillaje",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-02-20",
+      "fechaFin": "2025-02-21",
+      "semanas": 1,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Peinado",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-02-27",
+      "fechaFin": "2025-02-28",
+      "semanas": 1,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Cosmetologia",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-03-06",
+      "fechaFin": "2025-03-07",
+      "semanas": 1,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Tesis Permanente",
+      "modalidad": "Evento especial",
+      "tipo": "tesis",
+      "fechaInicio": "2025-03-07",
+      "fechaFin": "2025-03-08",
+      "semanas": 1,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Tricologia",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-03-13",
+      "fechaFin": "2025-03-14",
+      "semanas": 1,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Manicure Y Pedicure Spa",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-03-14",
+      "fechaFin": "2025-04-05",
+      "semanas": 4,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Tratamientos Capilares",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-03-20",
+      "fechaFin": "2025-04-04",
+      "semanas": 3,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Cupon Tesis Vacaciones",
+      "modalidad": "Evento especial",
+      "tipo": "tesis",
+      "fechaInicio": "2025-04-10",
+      "fechaFin": "2025-04-18",
+      "semanas": 2,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Tesis Manicure Y Pedicure",
+      "modalidad": "Evento especial",
+      "tipo": "tesis",
+      "fechaInicio": "2025-04-11",
+      "fechaFin": "2025-04-19",
+      "semanas": 2,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Corte De Dama",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-04-24",
+      "fechaFin": "2025-06-06",
+      "semanas": 7,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Cupon Para Tesis Vacaciones",
+      "modalidad": "Evento especial",
+      "tipo": "tesis",
+      "fechaInicio": "2025-04-25",
+      "fechaFin": "2025-04-26",
+      "semanas": 1,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Alaciado Express Y Brushing",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-05-02",
+      "fechaFin": "2025-05-10",
+      "semanas": 2,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Peinados",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-05-16",
+      "fechaFin": "2025-06-28",
+      "semanas": 7,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Corte De Caballero",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-06-12",
+      "fechaFin": "2025-07-11",
+      "semanas": 5,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Aplicacion De Unas",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-07-04",
+      "fechaFin": "2025-08-16",
+      "semanas": 7,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Y Barberia",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-07-17",
+      "fechaFin": "2025-08-08",
+      "semanas": 4,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Tesis Corte General",
+      "modalidad": "Evento especial",
+      "tipo": "tesis",
+      "fechaInicio": "2025-08-14",
+      "fechaFin": "2025-09-05",
+      "semanas": 4,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Escultural Y Gel",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-08-22",
+      "fechaFin": "2025-09-06",
+      "semanas": 3,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Colorimetria",
+      "modalidad": "Carrera completa",
+      "tipo": "materia",
+      "fechaInicio": "2025-09-11",
+      "fechaFin": "2025-11-07",
+      "semanas": 9,
+      "planId": "intensivos-2025-2026",
+      "grupos": [
+        "Viernes 9:00 a 1:00",
+        "Viernes 2:00 a 6:00",
+        "Sabado 9:00 a 1:00",
+        "Sabado 2:00 a 6:00"
+      ]
+    },
+    {
+      "titulo": "Tesis Aplicacion De Unas",
+      "modalidad": "Evento especial",
+      "tipo": "tesis",
+      "fechaInicio":
